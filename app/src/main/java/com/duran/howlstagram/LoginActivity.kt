@@ -7,6 +7,9 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
 import com.duran.howlstagram.databinding.ActivityLoginBinding
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
@@ -25,6 +28,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     var auth: FirebaseAuth? = null
+    var googleSignInClient: GoogleSignInClient? = null
+    var GOOGLE_LOGIN_CODE = 9001 // 구글 로그인할때 사용할 request code 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +41,15 @@ class LoginActivity : AppCompatActivity() {
         btn_email_login.setOnClickListener {
             signinAndSignup()
         }
+
+        // 구글 로그인 옵션 빌드
+       var gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken("416715023570-dp8naj20g669vq1pn8t0cs3nee6rj229.apps.googleusercontent.com") // 구글API키
+            .requestEmail() // 구글 아이디
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(this, gso) // 옵션값을 구글로그인 클라이언트에 세팅
     }
+
 
     // 회원가입 함수
     fun signinAndSignup() {
@@ -67,7 +80,7 @@ class LoginActivity : AppCompatActivity() {
                     task ->
                 if (task.isSuccessful) { // 아이디와 비밀번호가 일치할 때
                     // Login
-                    moveMainPage(task.result.user)
+                    moveMainPage(task.result?.user)
                 } else { // 아이디와 비밀번호가 불일치 할 때
                     // Show the error message
                     Toast.makeText(this, task.exception?.message, Toast.LENGTH_LONG).show()
