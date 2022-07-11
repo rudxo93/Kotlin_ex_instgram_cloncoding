@@ -69,7 +69,6 @@ class LoginActivity : AppCompatActivity() {
         googleSignInClient = GoogleSignIn.getClient(this, gso) // 옵션값을 구글로그인 클라이언트에 세팅
         printHashKey()
     }
-    // hash key: kyfwxGzp/nEmxViO2DhHlBQABnc=
 
     fun printHashKey() {
         try {
