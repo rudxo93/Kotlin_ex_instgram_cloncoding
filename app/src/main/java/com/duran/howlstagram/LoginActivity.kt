@@ -2,15 +2,16 @@ package com.duran.howlstagram
 
 import android.content.ContentValues
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
-import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -20,6 +21,9 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+
 
 class LoginActivity : AppCompatActivity() {
 
@@ -63,6 +67,24 @@ class LoginActivity : AppCompatActivity() {
             .requestEmail() // 구글 아이디
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso) // 옵션값을 구글로그인 클라이언트에 세팅
+        printHashKey()
+    }
+    // hash key: kyfwxGzp/nEmxViO2DhHlBQABnc=
+
+    fun printHashKey() {
+        try {
+            val info = packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
+            for (signature in info.signatures) {
+                val md: MessageDigest = MessageDigest.getInstance("SHA")
+                md.update(signature.toByteArray())
+                val hashKey: String  = String(Base64.encode(md.digest(), 0))
+                Log.i("TAG", "printHashKey() Hash Key: $hashKey")
+            }
+        } catch (e: NoSuchAlgorithmException) {
+            Log.e("TAG", "printHashKey()", e)
+        } catch (e: Exception) {
+            Log.e("TAG", "printHashKey()", e)
+        }
     }
 
     // 구글 로그인 함수
