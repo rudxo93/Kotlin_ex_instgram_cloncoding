@@ -1,17 +1,22 @@
 package com.duran.howlstagram
 
+import android.content.ContentValues
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.AppCompatButton
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
@@ -62,26 +67,32 @@ class LoginActivity : AppCompatActivity() {
 
     // 구글 로그인 함수
     private fun googleLogin(){
-        val signInIntent = googleSignInClient?.signInIntent
-        startActivityForResult(signInIntent, GOOGLE_LOGIN_CODE)
+        val signInIntent: Intent = googleSignInClient!!.signInIntent
+        startForResult.launch(signInIntent)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if(requestCode == GOOGLE_LOGIN_CODE){
-            // 구글에서 넘겨주는 로그인 결과값을 받아온다.
-            val result = Auth.GoogleSignInApi.getSignInResultFromIntent(data!!)
-            // 성공했을때 이 결과값을 Firebase로 넘겨준다.
-            if (result!!.isSuccess){ // Nullsafety
-                val account = result.signInAccount
-                // Second step
-                firebaseAuthWithGoogle(account)
+    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        result: ActivityResult ->
+
+        if(result.resultCode == RESULT_OK){
+            val intent: Intent = result.data!!
+            val task: Task<GoogleSignInAccount> =
+                GoogleSignIn.getSignedInAccountFromIntent(intent)
+
+            try {
+                // Google Sign In was successful, authenticate with Firebase
+                val account = task.getResult(ApiException::class.java)!!
+                Log.d(ContentValues.TAG, "firebaseAuthWithGoogle:" + account.id)
+                firebaseAuthWithGoogle(account.idToken!!)
+            } catch (e: ApiException) {
+                // Google Sign In failed, update UI appropriately
+                Log.w(ContentValues.TAG, "Google sign in failed", e)
             }
         }
     }
 
-    private fun firebaseAuthWithGoogle(account: GoogleSignInAccount?) {
-        val credential = GoogleAuthProvider.getCredential(account?.idToken, null)
+    private fun firebaseAuthWithGoogle(account: String) {
+        val credential = GoogleAuthProvider.getCredential(account, null)
         auth?.signInWithCredential(credential)
             ?.addOnCompleteListener { // 회원가입한 결과값을 받아온다.
                     task ->
