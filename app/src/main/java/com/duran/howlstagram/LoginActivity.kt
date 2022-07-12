@@ -12,17 +12,24 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import com.facebook.*
+import com.facebook.appevents.AppEventsLogger
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
+import com.facebook.login.widget.LoginButton
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.util.*
 
 
 class LoginActivity : AppCompatActivity() {
@@ -39,10 +46,14 @@ class LoginActivity : AppCompatActivity() {
     private val googleLoginBtn: AppCompatButton by lazy {
         findViewById(R.id.google_sign_in_button)
     }
+    private val facebookLoginBtn: AppCompatButton by lazy {
+        findViewById(R.id.facebook_login_button)
+    }
 
     private var auth: FirebaseAuth? = null
     private var googleSignInClient: GoogleSignInClient? = null
     private var GOOGLE_LOGIN_CODE = 9001 // 구글 로그인할때 사용할 request code
+    private var callbackManager: CallbackManager? = null // 페이스북 로그인 결과를 가져오는 콜백
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,13 +72,19 @@ class LoginActivity : AppCompatActivity() {
             googleLogin()
         }
 
+        facebookLoginBtn.setOnClickListener {
+            // First step
+            facebookLogin()
+        }
+
         // 구글 로그인 옵션 빌드
-       val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken("416715023570-dp8naj20g669vq1pn8t0cs3nee6rj229.apps.googleusercontent.com") // 구글API키
             .requestEmail() // 구글 아이디
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso) // 옵션값을 구글로그인 클라이언트에 세팅
-        printHashKey()
+        //printHashKey()
+
     }
 
     fun printHashKey() {
@@ -76,7 +93,7 @@ class LoginActivity : AppCompatActivity() {
             for (signature in info.signatures) {
                 val md: MessageDigest = MessageDigest.getInstance("SHA")
                 md.update(signature.toByteArray())
-                val hashKey: String  = String(Base64.encode(md.digest(), 0))
+                val hashKey: String = String(Base64.encode(md.digest(), 0))
                 Log.i("TAG", "printHashKey() Hash Key: $hashKey")
             }
         } catch (e: NoSuchAlgorithmException) {
@@ -87,30 +104,67 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // 구글 로그인 함수
-    private fun googleLogin(){
+    private fun googleLogin() {
         val signInIntent: Intent = googleSignInClient!!.signInIntent
-        startForResult.launch(signInIntent)
+        startForResultGoogle.launch(signInIntent)
     }
 
-    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        result: ActivityResult ->
+    private fun facebookLogin(){
+        LoginManager.getInstance()
+            .logInWithReadPermissions(this, Arrays.asList("public_profile", "email"))
 
-        if(result.resultCode == RESULT_OK){
-            val intent: Intent = result.data!!
-            val task: Task<GoogleSignInAccount> =
-                GoogleSignIn.getSignedInAccountFromIntent(intent)
+        LoginManager.getInstance()
+            .registerCallback(CallbackManager.Factory.create(), object : FacebookCallback<LoginResult>{
+                override fun onSuccess(result: LoginResult?) {
+                    // Second Step
+                    handleFacebookAccessToken(result?.accessToken)
+                }
 
-            try {
-                // Google Sign In was successful, authenticate with Firebase
-                val account = task.getResult(ApiException::class.java)!!
-                Log.d(ContentValues.TAG, "firebaseAuthWithGoogle:" + account.id)
-                firebaseAuthWithGoogle(account.idToken!!)
-            } catch (e: ApiException) {
-                // Google Sign In failed, update UI appropriately
-                Log.w(ContentValues.TAG, "Google sign in failed", e)
+                override fun onCancel() {
+
+                }
+
+                override fun onError(error: FacebookException?) {
+
+                }
+
+            })
+    }
+
+    fun handleFacebookAccessToken(token: AccessToken?) {
+        var credential = FacebookAuthProvider.getCredential(token?.token!!)
+        auth?.signInWithCredential(credential)
+            ?.addOnCompleteListener { // 회원가입한 결과값을 받아온다.
+                    task ->
+                if (task.isSuccessful) { // 아이디와 비밀번호가 일치할 때
+                    // Third Step
+                    // Login
+                    moveMainPage(task.result?.user)
+                } else { // 아이디와 비밀번호가 불일치 할 때
+                    // Show the error message
+                    Toast.makeText(this, task.exception?.message, Toast.LENGTH_LONG).show()
+                }
+            }
+    }
+
+    private val startForResultGoogle =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (result.resultCode == RESULT_OK) {
+                val intent: Intent = result.data!!
+                val task: Task<GoogleSignInAccount> =
+                    GoogleSignIn.getSignedInAccountFromIntent(intent)
+
+                try {
+                    // Google Sign In was successful, authenticate with Firebase
+                    val account = task.getResult(ApiException::class.java)!!
+                    Log.d(ContentValues.TAG, "firebaseAuthWithGoogle:" + account.id)
+                    firebaseAuthWithGoogle(account.idToken!!)
+                } catch (e: ApiException) {
+                    // Google Sign In failed, update UI appropriately
+                    Log.w(ContentValues.TAG, "Google sign in failed", e)
+                }
             }
         }
-    }
 
     private fun firebaseAuthWithGoogle(account: String) {
         val credential = GoogleAuthProvider.getCredential(account, null)
