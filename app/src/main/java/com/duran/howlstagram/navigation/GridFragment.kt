@@ -9,7 +9,7 @@ import com.duran.howlstagram.R
 
 class GridFragment: Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        var view = LayoutInflater.from(activity).inflate(R.layout.fragment_datail, container, false)
+        var view = LayoutInflater.from(activity).inflate(R.layout.fragment_grid, container, false)
         return view
     }
 }
