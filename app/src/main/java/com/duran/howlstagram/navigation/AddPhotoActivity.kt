@@ -58,6 +58,7 @@ class AddPhotoActivity : AppCompatActivity() {
         }
     }
 
+
     fun contentUpload() {
         // Make filename
         var timestamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
