@@ -62,7 +62,7 @@ class AddPhotoActivity : AppCompatActivity() {
         if(requestCode == PICK_IMAGE_FROM_ALBUM){
             if(resultCode == Activity.RESULT_OK){
                 // This is path to the selected image
-                photoUri = data?.data
+                photoUri = data?.data!!
                 addPhotoImage.setImageURI(photoUri)
             } else {
                 // Exit the addPhotoActivity if you leave the album with selecting it
