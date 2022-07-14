@@ -1,9 +1,11 @@
 package com.duran.howlstagram.navigation
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.LinearLayoutCompat
@@ -12,8 +14,11 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.duran.howlstagram.LoginActivity
+import com.duran.howlstagram.MainActivity
 import com.duran.howlstagram.R
 import com.duran.howlstagram.navigation.model.ContentDTO
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -23,13 +28,35 @@ class UserFragment: Fragment() {
     lateinit var firestore: FirebaseFirestore
     lateinit var uid: String
     lateinit var auth: FirebaseAuth
+    lateinit var currentUserUid: String
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         fragmentView = LayoutInflater.from(activity).inflate(R.layout.fragment_user, container, false)
         uid = arguments?.getString("destinationUid")!!
         firestore = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
+        currentUserUid = auth.currentUser!!.uid
 
+        if(uid == currentUserUid){
+            // MyPage
+            fragmentView.findViewById<Button>(R.id.account_btn_follow_signout).text = getString(R.string.signout)
+            fragmentView.findViewById<Button>(R.id.account_btn_follow_signout).setOnClickListener {
+                activity?.finish()
+                startActivity(Intent(activity, LoginActivity::class.java))
+                auth.signOut()
+            }
+        } else {
+            // OtherUserPage
+            fragmentView.findViewById<Button>(R.id.account_btn_follow_signout).text = getString(R.string.follow)
+            val mainactivity = (activity as MainActivity)
+            mainactivity.findViewById<TextView>(R.id.toolbar_username).text = arguments?.getString("userId")
+            mainactivity.findViewById<Button>(R.id.toolbar_btn_back).setOnClickListener {
+                mainactivity.findViewById<BottomNavigationView>(R.id.bottom_navigation).selectedItemId = R.id.action_home
+            }
+            mainactivity.findViewById<ImageView>(R.id.toolbar_title_image).visibility = View.GONE
+            mainactivity.findViewById<TextView>(R.id.toolbar_username).visibility = View.VISIBLE
+            mainactivity.findViewById<Button>(R.id.toolbar_btn_back).visibility = View.VISIBLE
+        }
         fragmentView.findViewById<RecyclerView>(R.id.account_recycleriew).adapter = UserFragmentRecyclerViewAdapter()
         fragmentView.findViewById<RecyclerView>(R.id.account_recycleriew).layoutManager = GridLayoutManager(activity, 3)
         return fragmentView
