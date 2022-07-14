@@ -1,5 +1,6 @@
 package com.duran.howlstagram.navigation
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -29,6 +30,9 @@ class UserFragment: Fragment() {
     lateinit var uid: String
     lateinit var auth: FirebaseAuth
     lateinit var currentUserUid: String
+    companion object{
+        var PICK_PROFILE_FROM_ALBUM = 10
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         fragmentView = LayoutInflater.from(activity).inflate(R.layout.fragment_user, container, false)
@@ -59,7 +63,27 @@ class UserFragment: Fragment() {
         }
         fragmentView.findViewById<RecyclerView>(R.id.account_recycleriew).adapter = UserFragmentRecyclerViewAdapter()
         fragmentView.findViewById<RecyclerView>(R.id.account_recycleriew).layoutManager = GridLayoutManager(activity, 3)
+
+        fragmentView.findViewById<ImageView>(R.id.account_iv_profile).setOnClickListener {
+            val photoPickerIntent = Intent(Intent.ACTION_PICK)
+            photoPickerIntent.type = "image/*"
+            activity?.startActivityForResult(photoPickerIntent, PICK_PROFILE_FROM_ALBUM)
+        }
+
+        getProfileImage()
         return fragmentView
+    }
+
+    @SuppressLint("UseRequireInsteadOfGet")
+    fun getProfileImage(){
+        firestore.collection("profileImages").document(uid).addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+            if(documentSnapshot == null) return@addSnapshotListener
+            if(documentSnapshot.data != null) {
+                var url = documentSnapshot.data!!["image"]
+                Glide.with(activity!!).load(url).apply(RequestOptions().circleCrop()).into(fragmentView.findViewById(R.id.account_iv_profile))
+            }
+
+        }
     }
 
     inner class UserFragmentRecyclerViewAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>(){
