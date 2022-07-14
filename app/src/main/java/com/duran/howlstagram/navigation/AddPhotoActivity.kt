@@ -1,5 +1,6 @@
 package com.duran.howlstagram.navigation
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -8,7 +9,6 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.Toast
 import com.duran.howlstagram.R
 import com.duran.howlstagram.navigation.model.ContentDTO
 import com.google.android.gms.tasks.Task
@@ -47,7 +47,7 @@ class AddPhotoActivity : AppCompatActivity() {
         firestore = FirebaseFirestore.getInstance()
 
         // Open the album
-        var photoPickerIntent = Intent(Intent.ACTION_PICK)
+        val photoPickerIntent = Intent(Intent.ACTION_PICK)
         photoPickerIntent.type = "image/*"
         startActivityForResult(photoPickerIntent, PICK_IMAGE_FROM_ALBUM)
 
@@ -71,27 +71,28 @@ class AddPhotoActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     fun contentUpload() {
         // Make filename
-        var timestamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        var imageFileName = "IMAGE_" + timestamp + "_.png"
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val imageFileName = "IMAGE_" + timestamp + "_.png"
 
-        var storageRef = storage?.reference?.child("images")?.child(imageFileName)
+        val storageRef = storage.reference.child("images").child(imageFileName)
 
         // Promise method
-        storageRef?.putFile(photoUri!!)?.continueWithTask { task: Task<UploadTask.TaskSnapshot> ->
+        storageRef.putFile(photoUri).continueWithTask { task: Task<UploadTask.TaskSnapshot> ->
             return@continueWithTask storageRef.downloadUrl
-        }?.addOnSuccessListener { uri ->
+        }.addOnSuccessListener { uri ->
             var contentDTO = ContentDTO()
 
             // Insert downloadUrl of image
             contentDTO.imageUrl = uri.toString()
 
             // Insert uid of user
-            contentDTO.uid = auth?.currentUser?.uid
+            contentDTO.uid = auth.currentUser?.uid
 
             // Insert userId
-            contentDTO.userId = auth?.currentUser?.email
+            contentDTO.userId = auth.currentUser?.email
 
             // Insert explain of content
             contentDTO.explain = addPhotoEtExplain.text.toString()
@@ -99,7 +100,7 @@ class AddPhotoActivity : AppCompatActivity() {
             // Insert timestamp
             contentDTO.timestamp = System.currentTimeMillis()
 
-            firestore?.collection("image")?.document()?.set(contentDTO)
+            firestore.collection("image").document().set(contentDTO)
 
             setResult(Activity.RESULT_OK)
 
