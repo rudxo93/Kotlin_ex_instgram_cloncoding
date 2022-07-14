@@ -19,6 +19,7 @@ import com.duran.howlstagram.LoginActivity
 import com.duran.howlstagram.MainActivity
 import com.duran.howlstagram.R
 import com.duran.howlstagram.navigation.model.ContentDTO
+import com.duran.howlstagram.navigation.model.FollowDTO
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -60,6 +61,9 @@ class UserFragment: Fragment() {
             mainactivity.findViewById<ImageView>(R.id.toolbar_title_image).visibility = View.GONE
             mainactivity.findViewById<TextView>(R.id.toolbar_username).visibility = View.VISIBLE
             mainactivity.findViewById<Button>(R.id.toolbar_btn_back).visibility = View.VISIBLE
+            fragmentView.findViewById<Button>(R.id.account_btn_follow_signout).setOnClickListener {
+                requestFollow()
+            }
         }
         fragmentView.findViewById<RecyclerView>(R.id.account_recycleriew).adapter = UserFragmentRecyclerViewAdapter()
         fragmentView.findViewById<RecyclerView>(R.id.account_recycleriew).layoutManager = GridLayoutManager(activity, 3)
@@ -72,6 +76,60 @@ class UserFragment: Fragment() {
 
         getProfileImage()
         return fragmentView
+    }
+
+    fun requestFollow(){
+        // Save data to my account
+        var tsDocFollowing = firestore.collection("users").document(currentUserUid)
+        firestore.runTransaction { transaction ->
+            var followDTO = transaction.get(tsDocFollowing).toObject(FollowDTO::class.java)
+            if(followDTO == null){
+                followDTO = FollowDTO()
+                followDTO!!.followerCount = 1
+                followDTO!!.followers[uid] = true
+
+                transaction.set(tsDocFollowing, followDTO) // 데이터가 DB에 담기게 된다.
+                return@runTransaction
+            }
+
+            if(followDTO.followings.containsKey(uid)){
+                // It remove following third person when a third person follow me
+                followDTO.followingCount = followDTO.followingCount - 1
+                followDTO.followers.remove(uid)
+            } else {
+                // It add following third person when a third person do not follow me
+                followDTO.followingCount = followDTO.followingCount + 1
+                followDTO.followers[uid] = true
+            }
+            transaction.set(tsDocFollowing, followDTO)
+            return@runTransaction
+        }
+
+        // Save data to third person
+        var tsDocFollower = firestore.collection("users").document(uid)
+        firestore.runTransaction { transaction ->
+            var followDTO = transaction.get(tsDocFollower).toObject(FollowDTO::class.java)
+            if(followDTO == null) {
+                followDTO = FollowDTO()
+                followDTO!!.followerCount = 1
+                followDTO!!.followers[currentUserUid] = true
+
+                transaction.set(tsDocFollower, followDTO!!)
+                return@runTransaction
+            }
+
+            if(followDTO!!.followers.containsKey(currentUserUid)) {
+                // It cancel my follower when I follow a third person
+                followDTO!!.followerCount = followDTO!!.followerCount - 1
+                followDTO!!.followers.remove(currentUserUid)
+            } else {
+                // It add my follower when I don't follow a third person
+                followDTO!!.followerCount = followDTO!!.followerCount + 1
+                followDTO!!.followers[currentUserUid] = true
+            }
+            transaction.set(tsDocFollower, followDTO!!)
+            return@runTransaction
+        }
     }
 
     @SuppressLint("UseRequireInsteadOfGet")
