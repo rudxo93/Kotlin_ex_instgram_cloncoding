@@ -47,12 +47,15 @@ class DetailViewFragment : Fragment() {
 
             // DB에 접근해서 데이터를 받아오는 쿼리 작성(시간순으로 받아온다.)
             firestore.collection("images").orderBy("itmestamp")
-                .addSnapshotListener { querySnaphsot, firebaseFirestoreException ->
+                .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
                     // 받자마자 값 초기화
                     contentDTOs.clear()
                     contentUidList.clear()
+                    // Sometimes, This code return null of querySnapshot when it signout
+                    if(querySnapshot == null) return@addSnapshotListener
+
                     // for문을 돌려서 스냅샷에 넘어오는 데이터들을 하나하나씩 읽어들인다.
-                    for (snapshot in querySnaphsot!!.documents) {
+                    for (snapshot in querySnapshot!!.documents) {
                         // ContentDTO 방식으로 캐스팅한다.
                         val item = snapshot.toObject(ContentDTO::class.java)
                         contentDTOs.add(item!!)
@@ -110,7 +113,18 @@ class DetailViewFragment : Fragment() {
                 // This is unlike status
                 viewholder.findViewById<ImageView>(R.id.detailviewitem_favorite_imageview).setImageResource(R.drawable.ic_favorite_border)
             }
+
+            // This code is when the profile image is clicked
+            viewholder.findViewById<ImageView>(R.id.detailviewitem_favorite_imageview).setOnClickListener {
+                val fragment = UserFragment()
+                val bundle = Bundle()
+                bundle.putString("destinationUid", contentDTOs[position].uid)
+                bundle.putString("userId", contentDTOs[position].userId)
+                fragment.arguments = bundle
+                activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.main_content, fragment)?.commit()
+            }
         }
+
     }
 
     fun favoriteEvent(position: Int) {

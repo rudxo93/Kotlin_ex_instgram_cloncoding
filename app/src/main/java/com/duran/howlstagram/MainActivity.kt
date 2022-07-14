@@ -1,11 +1,16 @@
 package com.duran.howlstagram
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.duran.howlstagram.navigation.*
@@ -33,6 +38,7 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        setToolbarDefault()
         when (item.itemId) {
             R.id.action_home -> {
                 var detailViewFragment = DetailViewFragment()
@@ -74,5 +80,16 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
             }
         }
         return false
+    }
+
+    @SuppressLint("WrongViewCast")
+    fun setToolbarDefault(){
+        val toolbarUsername = findViewById<TextView>(R.id.toolbar_username)
+        val toolbarBtnBack = findViewById<Button>(R.id.toolbar_btn_back)
+        val toolbarTitleImage = findViewById<ImageView>(R.id.toolbar_title_image)
+
+        toolbarUsername.visibility = View.GONE
+        toolbarBtnBack.visibility = View.GONE
+        toolbarTitleImage.visibility = View.VISIBLE
     }
 }
