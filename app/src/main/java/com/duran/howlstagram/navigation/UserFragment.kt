@@ -2,6 +2,7 @@ package com.duran.howlstagram.navigation
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -75,7 +77,31 @@ class UserFragment: Fragment() {
         }
 
         getProfileImage()
+        getFollowerAndFollowing()
         return fragmentView
+    }
+
+    @SuppressLint("UseRequireInsteadOfGet")
+    fun getFollowerAndFollowing(){
+        firestore.collection("users").document(uid).addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+            if(documentSnapshot == null) return@addSnapshotListener
+            var followDTO = documentSnapshot.toObject(FollowDTO::class.java)
+            if(followDTO?.followingCount != null){
+                fragmentView.findViewById<TextView>(R.id.account_tv_following_count).text = followDTO.followingCount.toString()
+            }
+            if(followDTO?.followerCount != null) {
+                fragmentView.findViewById<TextView>(R.id.account_tv_follower_count).text = followDTO.followerCount.toString()
+                if(followDTO.followers.containsKey(currentUserUid)){
+                    fragmentView.findViewById<Button>(R.id.account_btn_follow_signout).text = getString(R.string.follow_cancel)
+                    fragmentView.findViewById<Button>(R.id.account_btn_follow_signout).background.setColorFilter(ContextCompat.getColor(activity!!, R.color.colorLightGray), PorterDuff.Mode.MULTIPLY)
+                } else {
+                    if(uid != currentUserUid){
+                        fragmentView.findViewById<Button>(R.id.account_btn_follow_signout).text = getString(R.string.follow)
+                        fragmentView.findViewById<Button>(R.id.account_btn_follow_signout).background.colorFilter = null
+                    }
+                }
+            }
+        }
     }
 
     fun requestFollow(){
