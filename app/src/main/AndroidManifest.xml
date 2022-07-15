@@ -4,7 +4,7 @@
     package="com.duran.howlstagram">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission
         android:name="com.google.android.gms.permission.AD_ID"
         tools:node="remove" />
@@ -20,6 +20,9 @@
         android:theme="@style/Theme.Howlstagram"
         tools:targetApi="31">
         <activity
+            android:name=".CommentActivity"
+            android:exported="false" />
+        <activity
             android:name=".navigation.AddPhotoActivity"
             android:exported="false" />
         <activity
@@ -33,7 +36,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:exported="false"></activity>
+            android:exported="false" />
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"

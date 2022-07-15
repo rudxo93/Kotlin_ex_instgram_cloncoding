@@ -7,12 +7,14 @@
         <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/drawable/ic_launcher_background.xml" value="0.203" />
         <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/drawable/push_icon.xml" value="0.203" />
         <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/layout/activity_add_photo.xml" value="0.284375" />
+        <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/layout/activity_comment.xml" value="0.36614583333333334" />
         <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/layout/activity_login.xml" value="0.25" />
         <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/layout/fragment_alarm.xml" value="0.284375" />
         <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/layout/fragment_datail.xml" value="0.2833333333333333" />
         <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/layout/fragment_grid.xml" value="0.284375" />
         <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/layout/fragment_user.xml" value="0.284375" />
+        <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/layout/item_comment.xml" value="0.25" />
         <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/layout/item_detail.xml" value="0.25833333333333336" />
         <entry key="..\:/android_workspace/Kotlin_ex_instgram_cloncoding/app/src/main/res/menu/bottom_navigation_main.xml" value="0.2833333333333333" />
       </map>
