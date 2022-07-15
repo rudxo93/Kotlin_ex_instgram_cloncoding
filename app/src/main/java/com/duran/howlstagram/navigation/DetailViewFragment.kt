@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.duran.howlstagram.R
+import com.duran.howlstagram.navigation.model.AlarmDTO
 import com.duran.howlstagram.navigation.model.ContentDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -127,28 +128,40 @@ class DetailViewFragment : Fragment() {
             viewholder.findViewById<ImageView>(R.id.detailviewitem_comment_imageview).setOnClickListener {  v ->
                 var intent = Intent(v.context, CommentActivity::class.java)
                 intent.putExtra("contentUid", contentUidList[position])
+                intent.putExtra("destinationUid", contentDTOs[position].uid)
                 startActivity(intent)
             }
         }
 
-    }
+        fun favoriteEvent(position: Int) {
+            val tsDoc = firestore.collection("images").document(contentUidList[position])
+            firestore.runTransaction { transaction ->
 
-    fun favoriteEvent(position: Int) {
-        val tsDoc = firestore.collection("images").document(contentUidList[position])
-        firestore.runTransaction { transaction ->
+                val contentDto = transaction.get(tsDoc).toObject(ContentDTO::class.java)
 
-            val contentDto = transaction.get(tsDoc).toObject(ContentDTO::class.java)
-
-            if(contentDto!!.favorites.containsKey(uid)){
-                // When the button is clicked
-                contentDto.favoriteCount = contentDto.favoriteCount - 1
-                contentDto.favorites.remove(uid)
-            } else {
-                // When the button is not click
-                contentDto.favoriteCount = contentDto.favoriteCount + 1
-                contentDto.favorites[uid!!] = true
+                if(contentDto!!.favorites.containsKey(uid)){
+                    // When the button is clicked
+                    contentDto.favoriteCount = contentDto.favoriteCount - 1
+                    contentDto.favorites.remove(uid)
+                } else {
+                    // When the button is not click
+                    contentDto.favoriteCount = contentDto.favoriteCount + 1
+                    contentDto.favorites[uid!!] = true
+                    favoriteAlarm(contentDTOs[position].uid!!)
+                }
+                transaction.set(tsDoc, contentDto)
             }
-            transaction.set(tsDoc, contentDto)
+        }
+
+        fun favoriteAlarm(destinationUid: String){
+            val alarmDTO = AlarmDTO()
+            alarmDTO.destinationUid = destinationUid
+            alarmDTO.userId = FirebaseAuth.getInstance().currentUser?.email
+            alarmDTO.uid = FirebaseAuth.getInstance().currentUser?.uid
+            alarmDTO.kind = 0
+            alarmDTO.timestamp = System.currentTimeMillis()
+            FirebaseFirestore.getInstance().collection("alarms").document().set(alarmDTO)
+
         }
     }
 }

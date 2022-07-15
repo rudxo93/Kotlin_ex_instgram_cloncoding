@@ -45,13 +45,13 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
         setToolbarDefault()
         when (item.itemId) {
             R.id.action_home -> {
-                var detailViewFragment = DetailViewFragment()
+                val detailViewFragment = DetailViewFragment()
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.main_content, detailViewFragment).commit()
                 return true
             }
             R.id.action_search -> {
-                var gridFragment = GridFragment()
+                val gridFragment = GridFragment()
                 supportFragmentManager.beginTransaction().replace(R.id.main_content, gridFragment)
                     .commit()
                 return true
@@ -67,15 +67,15 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
                 return true
             }
             R.id.action_favorite_alarm -> {
-                var alarmFragment = AlarmFragment()
+                val alarmFragment = AlarmFragment()
                 supportFragmentManager.beginTransaction().replace(R.id.main_content, alarmFragment)
                     .commit()
                 return true
             }
             R.id.action_account -> {
-                var userFragment = UserFragment()
-                var bundle = Bundle()
-                var uid = FirebaseAuth.getInstance().currentUser?.uid
+                val userFragment = UserFragment()
+                val bundle = Bundle()
+                val uid = FirebaseAuth.getInstance().currentUser?.uid
                 bundle.putString("destinationUid", uid)
                 userFragment.arguments = bundle
                 supportFragmentManager.beginTransaction().replace(R.id.main_content, userFragment)
@@ -102,9 +102,9 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
 
         // 사진을 선택했을 경우 처리
         if(requestCode == UserFragment.PICK_PROFILE_FROM_ALBUM && resultCode == RESULT_OK) {
-            var imageUri = data?.data
-            var uid = FirebaseAuth.getInstance().currentUser?.uid
-            var storageRef = FirebaseStorage.getInstance().reference.child("userProfileImages").child(uid!!)
+            val imageUri = data?.data
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            val storageRef = FirebaseStorage.getInstance().reference.child("userProfileImages").child(uid!!)
             storageRef.putFile(imageUri!!).continueWithTask { task: Task<UploadTask,UploadTask.TaskSnapshot> ->
                 return@continueWithTask storageRef.downloadUrl
             }.addOnSuccessListener { uri ->

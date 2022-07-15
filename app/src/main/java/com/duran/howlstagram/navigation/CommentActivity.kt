@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.duran.howlstagram.R
+import com.duran.howlstagram.navigation.model.AlarmDTO
 import com.duran.howlstagram.navigation.model.ContentDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -31,12 +32,14 @@ class CommentActivity : AppCompatActivity() {
     }
 
     lateinit var contentUid: String
+    lateinit var destinationUid: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_comment)
 
         contentUid = intent.getStringExtra("contentUid")!!
+        destinationUid = intent.getStringExtra("destinationUid")!!
 
         commentRecyclerView.adapter = CommentrecyclerviewAdapter()
         commentRecyclerView.layoutManager = LinearLayoutManager(this)
@@ -49,9 +52,19 @@ class CommentActivity : AppCompatActivity() {
             comment.timestamp = System.currentTimeMillis()
 
             FirebaseFirestore.getInstance().collection("images").document(contentUid!!).collection("comments").document().set(comment)
-
+            commentAlarm(destinationUid, commentEditMassage.text.toString())
             commentEditMassage.setText("")
         }
+    }
+
+    fun commentAlarm(destinationUid: String, message: String){
+        val alarmDTO = AlarmDTO()
+        alarmDTO.destinationUid = destinationUid
+        alarmDTO.userId = FirebaseAuth.getInstance().currentUser?.email
+        alarmDTO.uid = FirebaseAuth.getInstance().currentUser?.uid
+        alarmDTO.timestamp = System.currentTimeMillis()
+        alarmDTO.message = message
+        FirebaseFirestore.getInstance().collection("alarms").document().set(alarmDTO)
     }
 
     inner class CommentrecyclerviewAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>(){
