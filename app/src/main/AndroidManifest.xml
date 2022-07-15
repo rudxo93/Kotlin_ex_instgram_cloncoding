@@ -20,7 +20,7 @@
         android:theme="@style/Theme.Howlstagram"
         tools:targetApi="31">
         <activity
-            android:name=".CommentActivity"
+            android:name=".navigation.CommentActivity"
             android:exported="false" />
         <activity
             android:name=".navigation.AddPhotoActivity"
@@ -31,7 +31,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <android:category
+                    android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
@@ -61,6 +62,12 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/push_icon"/>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/colorAccent"/>
     </application>
 
 </manifest>
