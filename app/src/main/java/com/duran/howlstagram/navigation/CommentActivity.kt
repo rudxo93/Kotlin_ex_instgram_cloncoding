@@ -61,6 +61,7 @@ class CommentActivity : AppCompatActivity() {
         val alarmDTO = AlarmDTO()
         alarmDTO.destinationUid = destinationUid
         alarmDTO.userId = FirebaseAuth.getInstance().currentUser?.email
+        alarmDTO.kind = 1
         alarmDTO.uid = FirebaseAuth.getInstance().currentUser?.uid
         alarmDTO.timestamp = System.currentTimeMillis()
         alarmDTO.message = message
