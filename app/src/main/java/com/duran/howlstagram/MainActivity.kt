@@ -18,6 +18,8 @@ import com.google.android.gms.tasks.Task
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.iid.FirebaseInstanceIdReceiver
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.UploadTask
 
@@ -39,6 +41,7 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
 
         // Set default screen
         bottomNavigation.selectedItemId = R.id.action_home
+        registerPushToken()
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -95,6 +98,18 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
         toolbarUsername.visibility = View.GONE
         toolbarBtnBack.visibility = View.GONE
         toolbarTitleImage.visibility = View.VISIBLE
+    }
+
+    fun registerPushToken(){
+        FirebaseMessaging.getInstance().token.addOnCompleteListener {
+            task ->
+            val token = task.result
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            val map = mutableMapOf<String, Any>()
+            map["pushToken"] = token!!
+
+            FirebaseFirestore.getInstance().collection("pushtokens").document(uid!!).set(map)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
