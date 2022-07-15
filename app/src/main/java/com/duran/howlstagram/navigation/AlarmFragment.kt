@@ -8,6 +8,8 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.duran.howlstagram.R
 import com.duran.howlstagram.navigation.model.AlarmDTO
 import com.google.firebase.auth.FirebaseAuth
@@ -56,6 +58,13 @@ class AlarmFragment: Fragment() {
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             val view = holder.itemView
 
+            FirebaseFirestore.getInstance().collection("profileImages").document(alarmDTOList[position].uid!!).get().addOnCompleteListener { task ->
+                if(task.isSuccessful){
+                    val url = task.result!!["image"]
+                    Glide.with(view.context).load(url).apply(RequestOptions().circleCrop()).into(view.findViewById(R.id.commentviewitem_imageview_profile))
+                }
+            }
+
             when(alarmDTOList[position].kind){
                 0 -> {
                     val str_0 = alarmDTOList[position].userId + getString(R.string.alarm_favorite)
@@ -70,6 +79,7 @@ class AlarmFragment: Fragment() {
                   view.findViewById<TextView>(R.id.commentviewitem_textview_profile).text = str_0
                 }
             }
+            view.findViewById<TextView>(R.id.commentviewitem_textview_comment).visibility = View.INVISIBLE
         }
     }
 }
