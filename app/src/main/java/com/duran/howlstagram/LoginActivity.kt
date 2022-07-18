@@ -1,7 +1,13 @@
 package com.duran.howlstagram
 
+import android.content.ContentValues.TAG
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Base64
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +20,8 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 
 class LoginActivity : AppCompatActivity() {
 
@@ -50,6 +58,8 @@ class LoginActivity : AppCompatActivity() {
 
         // 옵션값을 구글로그인 클라이언트에 세팅
         googleSignInClient = GoogleSignIn.getClient(this, gso)
+        // 페이스북 로그인에 필요한 hashkey값 구하기
+        printHashKey(this)
     }
 
     // 구글 로그인
@@ -90,6 +100,23 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
 
+        }
+    }
+
+    // hash key값 출력
+    private fun printHashKey(context: Context) {
+        try {
+            val info: PackageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), PackageManager.GET_SIGNATURES)
+            for (signature in info.signatures) {
+                val md: MessageDigest = MessageDigest.getInstance("SHA")
+                md.update(signature.toByteArray())
+                val hashKey: String = String(Base64.encode(md.digest(), 0))
+                Log.i(TAG, "printHashKey() Hash Key: $hashKey")
+            }
+        }  catch (e: NoSuchAlgorithmException) {
+            Log.e(TAG, "printHashKey()", e)
+        } catch (e: Exception) {
+            Log.e(TAG, "printHashKey()", e)
         }
     }
 
