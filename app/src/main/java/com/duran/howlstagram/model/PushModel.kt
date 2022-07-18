@@ -1,8 +1,6 @@
-package com.duran.howlstagram.navigation.model
+package com.duran.howlstagram.model
 
-import android.app.Notification
-
-data class PushDTO (
+data class PushModel (
     var to: String? = null,
     var notification: Notification = Notification()
 ){

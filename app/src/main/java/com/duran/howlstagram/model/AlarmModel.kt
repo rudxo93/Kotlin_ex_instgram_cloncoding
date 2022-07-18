@@ -1,6 +1,6 @@
-package com.duran.howlstagram.navigation.model
+package com.duran.howlstagram.model
 
-data class AlarmDTO (
+data class AlarmModel (
     var destinationUid: String? = null,
     var userId: String? = null,
     var uid: String? = null,
