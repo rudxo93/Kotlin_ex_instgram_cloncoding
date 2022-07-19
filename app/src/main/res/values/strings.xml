@@ -16,6 +16,7 @@
     <string name="signout_success">Signout success</string>
     <string name="signout_fail">Signout fail</string>
     <string name="signout_fail_null">Please enter your email and password</string>
+    <string name="donothave_permission">You do not have read permission</string>
 
     <!-- Bottom Navigation View -->
     <string name="home">home</string>
