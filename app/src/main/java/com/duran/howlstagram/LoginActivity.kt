@@ -1,5 +1,6 @@
 package com.duran.howlstagram
 
+import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
@@ -13,15 +14,23 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.duran.howlstagram.databinding.ActivityLoginBinding
+import com.facebook.AccessToken
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.util.*
 
 class LoginActivity : AppCompatActivity() {
 
@@ -30,6 +39,8 @@ class LoginActivity : AppCompatActivity() {
     lateinit var auth: FirebaseAuth
     //
     lateinit var googleSignInClient: GoogleSignInClient
+    //
+    lateinit var callbackManager: CallbackManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +61,12 @@ class LoginActivity : AppCompatActivity() {
             googleLogin()
         }
 
+        callbackManager = CallbackManager.Factory.create()
+        // 페이스북 로그인 버튼 클릭 시
+        binding.facebookLoginButton.setOnClickListener {
+            facebookLogin()
+        }
+
         // 구글 로그인 클라이언트 설정 및 생성
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id)) // 구글API키 -> ID Token을 가져와야 한다.
@@ -59,7 +76,44 @@ class LoginActivity : AppCompatActivity() {
         // 옵션값을 구글로그인 클라이언트에 세팅
         googleSignInClient = GoogleSignIn.getClient(this, gso)
         // 페이스북 로그인에 필요한 hashkey값 구하기
-        printHashKey(this)
+        //printHashKey(this)
+    }
+
+    // 페이스북 로그인
+    private fun facebookLogin() {
+        val loginManager = LoginManager.getInstance()
+        // 로그인 요청
+        loginManager.logInWithReadPermissions(this, Arrays.asList("public_profile", "email"))
+        loginManager.registerCallback(callbackManager, object : FacebookCallback<LoginResult>{
+            override fun onSuccess(result: LoginResult?) {
+                val token = result?.accessToken
+                firebaseAuthWithFacebook(token)
+            }
+
+            override fun onCancel() {
+
+            }
+
+            override fun onError(error: FacebookException?) {
+
+            }
+        })
+    }
+
+    //Firebase에 사용자 인증 정보를 넘겨주는 부분(페이스북 계정을 저장)
+    fun firebaseAuthWithFacebook(idToken: AccessToken?) {
+        val credential = FacebookAuthProvider.getCredential(idToken!!.token)
+        auth.signInWithCredential(credential).addOnCompleteListener {
+            task ->
+            if(task.isSuccessful){
+                if(auth.currentUser!!.isEmailVerified){
+                    // 이메일 인증이 되었을때
+                    moveMain(auth.currentUser)
+                } else {
+                    // 이메일 인증이 실패했을때
+                }
+            }
+        }
     }
 
     // 구글 로그인
@@ -104,6 +158,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // hash key값 출력
+    @SuppressLint("PackageManagerGetSignatures")
     private fun printHashKey(context: Context) {
         try {
             val info: PackageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), PackageManager.GET_SIGNATURES)
