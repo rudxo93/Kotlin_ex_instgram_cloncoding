@@ -13,6 +13,7 @@ import com.duran.howlstagram.R
 import com.duran.howlstagram.databinding.FragmentDetailViewBinding
 import com.duran.howlstagram.databinding.ItemDetailBinding
 import com.duran.howlstagram.model.ContentModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 
@@ -20,11 +21,13 @@ class DetailViewFragment : Fragment() {
 
     lateinit var binding: FragmentDetailViewBinding
     lateinit var firestore: FirebaseFirestore
+    lateinit var uid: String
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_view, container, false)
         firestore = FirebaseFirestore.getInstance()
+        uid = FirebaseAuth.getInstance().uid!!
 
         // recyclerview에
         binding.detailviewRecyclerveiw.adapter = DetailviewRecyclerviewAdapter()
@@ -83,10 +86,40 @@ class DetailViewFragment : Fragment() {
             Glide.with(holder.itemView.context).load(contentModels[position].imageUrl).into(viewHolder.contentImageview)
             // Proflie Image
             Glide.with(holder.itemView.context).load(contentModels[position].imageUrl).into(viewHolder.profileImageview)
+
+            // 좋아요 버튼 클릭 시
+            viewHolder.favoriteImageview.setOnClickListener {
+                // 좋아요 기능 구현
+                eventFavorite(position)
+            }
         }
 
         override fun getItemCount(): Int {
             return contentModels.size
+        }
+
+        // 좋아요 기능 구현
+        fun eventFavorite(position: Int) {
+            // 선택한 컨텐츠의 uid값
+            var docId = contentUidsList[position]
+            // 내가 선택한 컨텐츠의 uid를 받아와서 좋아요 기능 구현
+            var tsDoc = firestore.collection("images").document(docId)
+            // 데이터 입력하기위해 transaction을 불러와야한다.
+            firestore.runTransaction {
+                transition ->
+                // contentModel로 캐스팅
+                var contentModel = transition.get(tsDoc).toObject(ContentModel::class.java)
+                if(contentModel!!.favorites.containsKey(uid)){
+                    // 좋아요 누른 상태
+                    contentModel.favoriteCount = contentModel.favoriteCount - 1
+                    contentModel.favorites.remove(uid)
+                } else {
+                    // 좋아요를 누르지 않은 상태
+                    contentModel.favoriteCount = contentModel.favoriteCount + 1
+                    contentModel.favorites[uid] = true
+                }
+                transition.set(tsDoc, contentModel)
+            }
         }
 
     }

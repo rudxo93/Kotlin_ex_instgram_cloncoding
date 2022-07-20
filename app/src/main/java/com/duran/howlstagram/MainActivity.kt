@@ -26,6 +26,8 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         binding.bottomNavigation.setOnNavigationItemSelectedListener(this)
+        // 메인 엑티비티에 detail fragment 적용
+        binding.bottomNavigation.selectedItemId = R.id.action_home
 
         // 사진 경로를 가져올 수 있는 권한 요청
         ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 0)
