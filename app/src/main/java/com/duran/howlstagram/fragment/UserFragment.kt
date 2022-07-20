@@ -1,5 +1,6 @@
 package com.duran.howlstagram.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.duran.howlstagram.LoginActivity
+import com.duran.howlstagram.MainActivity
 import com.duran.howlstagram.R
 import com.duran.howlstagram.databinding.FragmentUserBinding
 import com.duran.howlstagram.model.ContentModel
@@ -24,16 +27,53 @@ class UserFragment: Fragment() {
     lateinit var firestore: FirebaseFirestore
     lateinit var auth: FirebaseAuth
     lateinit var dUid: String
+    lateinit var currentUid: String
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_user, container, false)
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
-        dUid = arguments?.getString("dUid")!! // activity에서 넘어온 dUid 데이터 받기
+        // activity에서 넘어온 dUid 데이터 받기
+        dUid = arguments?.getString("dUid")!!
+        // 내 계정인지 상대방 계정인지 판단
+        currentUid = auth.currentUser!!.uid
 
         binding.accountRecyclerview.adapter = UserFragmentRecyclerViewAdapter()
         binding.accountRecyclerview.layoutManager = GridLayoutManager(activity, 3)
+
+        var mainActivity = activity as? MainActivity
+
+        if (currentUid == dUid) {
+            // my page
+            mainActivity?.binding?.toolbarLogo?.visibility = View.VISIBLE
+            mainActivity?.binding?.toolbarUsername?.visibility = View.INVISIBLE
+            mainActivity?.binding?.toolbarBtnBack?.visibility = View.INVISIBLE
+
+            // 본인 계정의 마이 페이지라면 accountBtnFollowSignout 버튼을 signout으로
+            binding.accountBtnFollowSignout.text = activity?.getText(R.string.signout)
+            // 본인 계정일 때 signout버튼 클릭한다면 엑티비티 종료, 로그인 엑티비티를 호출, Firebase auth값을 signout
+            binding.accountBtnFollowSignout.setOnClickListener {
+                auth.signOut()
+                activity?.finish()
+                startActivity(Intent(activity, LoginActivity::class.java))
+            }
+        } else {
+            // other user page
+            mainActivity?.binding?.toolbarLogo?.visibility = View.INVISIBLE
+            mainActivity?.binding?.toolbarUsername?.visibility = View.VISIBLE
+            mainActivity?.binding?.toolbarBtnBack?.visibility = View.VISIBLE
+
+            // 다른 사람의 user페이지 일 경우 누구의 user페이지인지 보여즈고 back버튼 활성화
+            mainActivity?.binding?.toolbarUsername?.text = arguments?.getString("userId")
+            // 뒤로가기 버튼 클릭 시 home으로 이동
+            mainActivity?.binding?.toolbarBtnBack?.setOnClickListener {
+                mainActivity?.binding?.bottomNavigation.selectedItemId = R.id.action_home
+            }
+
+            // 본인 계정이 아니라면 마이 페이지라면 accountBtnFollowSignout 버튼을 signout으로
+            binding.accountBtnFollowSignout.text = activity?.getText(R.string.follow)
+        }
 
         return binding.root
     }

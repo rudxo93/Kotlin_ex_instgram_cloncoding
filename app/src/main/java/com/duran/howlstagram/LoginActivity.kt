@@ -79,6 +79,11 @@ class LoginActivity : AppCompatActivity() {
         //printHashKey(this)
     }
 
+    override fun onStart() {
+        super.onStart()
+        moveMain(auth.currentUser)
+    }
+
     // 페이스북 로그인
     private fun facebookLogin() {
         val loginManager = LoginManager.getInstance()
@@ -157,7 +162,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // hash key값 출력
+    /*// hash key값 출력
     @SuppressLint("PackageManagerGetSignatures")
     private fun printHashKey(context: Context) {
         try {
@@ -173,7 +178,7 @@ class LoginActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "printHashKey()", e)
         }
-    }
+    }*/
 
     // 계정 생성
     private fun signinAndsignup() {
@@ -211,6 +216,7 @@ class LoginActivity : AppCompatActivity() {
     private fun moveMain(user: FirebaseUser?) {
         if(user != null){
             startActivity(Intent(this, MainActivity::class.java))
+            finish()
         }
     }
 
