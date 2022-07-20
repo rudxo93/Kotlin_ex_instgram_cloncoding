@@ -16,10 +16,12 @@ import com.duran.howlstagram.fragment.DetailViewFragment
 import com.duran.howlstagram.fragment.GridFragment
 import com.duran.howlstagram.fragment.UserFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemSelectedListener  {
 
     lateinit var binding: ActivityMainBinding
+    lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,6 +70,11 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
             // account 아이템 -> 계정 정보
             R.id.action_account -> {
                 val fragment = UserFragment()
+                // Activity -> Fragment 데이터 가지고 이동
+                val bundle = Bundle()
+                val uid = FirebaseAuth.getInstance().currentUser?.uid
+                bundle.putString("dUid", uid) // 데이터 넣기
+                fragment.arguments = bundle // fragment의 arguments에 데이터를 담은 bundle을 넘겨준다.
                 supportFragmentManager.beginTransaction().replace(R.id.main_content, fragment).commit()
                 return true
             }
