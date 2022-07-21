@@ -1,11 +1,14 @@
 package com.duran.howlstagram.fragment
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -20,16 +23,38 @@ import com.duran.howlstagram.databinding.FragmentUserBinding
 import com.duran.howlstagram.model.ContentModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 
 class UserFragment: Fragment() {
 
     lateinit var binding: FragmentUserBinding
     lateinit var firestore: FirebaseFirestore
     lateinit var auth: FirebaseAuth
+    lateinit var storeage: FirebaseStorage
     lateinit var dUid: String
     lateinit var currentUid: String
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    val myPhotoResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+        result ->
+        // 사진을 받아오면서 바로 업로드한다.
+        val imageUrl = result.data!!.data
+        // 사진을 저장할 경로
+        val storageRef = storeage.reference.child("userProfileImages").child(currentUid)
+        storageRef.putFile(imageUrl!!).continueWithTask {
+            // 스토리지에 사진만 업로드
+            return@continueWithTask storageRef.downloadUrl
+        }.addOnCompleteListener {
+            imageUri ->
+            // 데이터베이스 누가 뭘 올렸는지 정리한 데이터 저장
+            Log.e("tab", "여기서 에러인가?")
+            val map = HashMap<String, Any>()
+            map["image"] = imageUri.result.toString()
+
+            firestore.collection("profileImages").document(currentUid).set(map)
+        }
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_user, container, false)
         auth = FirebaseAuth.getInstance()
@@ -42,7 +67,7 @@ class UserFragment: Fragment() {
         binding.accountRecyclerview.adapter = UserFragmentRecyclerViewAdapter()
         binding.accountRecyclerview.layoutManager = GridLayoutManager(activity, 3)
 
-        var mainActivity = activity as? MainActivity
+        val mainActivity = activity as? MainActivity
 
         if (currentUid == dUid) {
             // my page
@@ -58,6 +83,12 @@ class UserFragment: Fragment() {
                 activity?.finish()
                 startActivity(Intent(activity, LoginActivity::class.java))
             }
+            // 본인 계정 프로필 사진 view 클릭 시
+            binding.accountIvProfile.setOnClickListener {
+                val picker = Intent(Intent.ACTION_PICK)
+                picker.type = "image/*"
+                myPhotoResultLauncher.launch(picker)
+            }
         } else {
             // other user page
             mainActivity?.binding?.toolbarLogo?.visibility = View.INVISIBLE
@@ -68,17 +99,31 @@ class UserFragment: Fragment() {
             mainActivity?.binding?.toolbarUsername?.text = arguments?.getString("userId")
             // 뒤로가기 버튼 클릭 시 home으로 이동
             mainActivity?.binding?.toolbarBtnBack?.setOnClickListener {
-                mainActivity?.binding?.bottomNavigation.selectedItemId = R.id.action_home
+                mainActivity.binding.bottomNavigation.selectedItemId = R.id.action_home
             }
 
             // 본인 계정이 아니라면 마이 페이지라면 accountBtnFollowSignout 버튼을 signout으로
             binding.accountBtnFollowSignout.text = activity?.getText(R.string.follow)
         }
 
+        // 프로필 이미지 가져오기
+        getProfileImage()
+
         return binding.root
     }
 
+    fun getProfileImage(){
+        // Firebase의 profileImages컬렉션에 있는 프로필이미지를 가져온다.
+        firestore.collection("profileImages").document(dUid).addSnapshotListener { value, error ->
+            if(value?.data != null) {
+                val url = value.data!!["image"]
+                Glide.with(requireActivity()).load(url).apply(RequestOptions().circleCrop()).into(binding.accountIvProfile)
+            }
+        }
+    }
+
     inner class CustomViewHolder(val imageview: ImageView): RecyclerView.ViewHolder(imageview)
+    @SuppressLint("NotifyDataSetChanged")
     inner class UserFragmentRecyclerViewAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>(){
         val contentModels: ArrayList<ContentModel> = arrayListOf()
 

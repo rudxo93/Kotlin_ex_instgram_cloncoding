@@ -84,8 +84,6 @@ class DetailViewFragment : Fragment() {
             viewHolder.explainTextview.text = contentModel.explain
             // Image
             Glide.with(holder.itemView.context).load(contentModels[position].imageUrl).into(viewHolder.contentImageview)
-            // Proflie Image
-            Glide.with(holder.itemView.context).load(contentModels[position].imageUrl).into(viewHolder.profileImageview)
 
             // 좋아요 버튼 클릭 시
             viewHolder.favoriteImageview.setOnClickListener {
