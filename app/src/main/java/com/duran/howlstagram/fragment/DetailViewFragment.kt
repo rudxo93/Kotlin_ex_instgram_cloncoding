@@ -92,6 +92,18 @@ class DetailViewFragment : Fragment() {
                 // 좋아요 기능 구현
                 eventFavorite(position)
             }
+
+            // 상대방 유저페이지 이동
+            viewHolder.profileImageview.setOnClickListener {
+                val fragment = UserFragment()
+                val bundle = Bundle()
+                // Fragment -> Activity 데이터 가지고 이동
+                bundle.putString("dUid", contentModel.uid) // dUid로 uid값
+                bundle.putString("userId", contentModel.userId) // userId로 userId값
+                // 데이터를 가지고 UserFragment로 이동
+                fragment.arguments = bundle
+                activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.main_content, fragment)?.commit()
+            }
         }
 
         override fun getItemCount(): Int {

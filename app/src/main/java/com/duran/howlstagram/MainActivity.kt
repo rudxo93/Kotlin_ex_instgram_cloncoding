@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -36,9 +37,16 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
+
         when(item.itemId){
             //  home 아이템 -> 상세페이지
             R.id.action_home -> {
+
+                // home에서는 logo만 보이고 뒤로가기 버튼과 username은 숨겨준다.
+                binding.toolbarUsername.visibility = View.INVISIBLE
+                binding.toolbarBtnBack.visibility = View.INVISIBLE
+                binding.toolbarLogo.visibility = View.VISIBLE
+
                 val fragment = DetailViewFragment()
                 supportFragmentManager.beginTransaction().replace(R.id.main_content, fragment).commit()
                 return true

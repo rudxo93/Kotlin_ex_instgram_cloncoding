@@ -6,9 +6,9 @@
     </data>
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -33,71 +33,71 @@
                 android:text="@string/follow" />
 
             <LinearLayout
-                android:gravity="center_vertical"
-                android:layout_toRightOf="@+id/account_iv_profile"
-                android:layout_above="@+id/account_btn_follow_signout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_above="@+id/account_btn_follow_signout"
+                android:layout_toRightOf="@+id/account_iv_profile"
+                android:gravity="center_vertical">
 
                 <LinearLayout
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical"
-                    android:layout_weight="1"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
 
                     <TextView
-                        android:text="POST"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        android:text="POST" />
 
                     <TextView
                         android:id="@+id/account_post_textview"
-                        android:text="0"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        android:text="0" />
 
                 </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/follower_linearlayout"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical"
-                    android:layout_weight="1"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
 
                     <TextView
-                        android:text="FOLLOWER"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        android:text="FOLLOWER" />
 
                     <TextView
                         android:id="@+id/account_follower_textview"
-                        android:text="0"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        android:text="0" />
 
                 </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/following_linearlayout"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical"
-                    android:layout_weight="1"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
 
                     <TextView
-                        android:text="FOLLOWING"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        android:text="FOLLOWING" />
 
                     <TextView
                         android:id="@+id/account_following_textview"
-                        android:text="0"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        android:text="0" />
 
                 </LinearLayout>
 
@@ -108,7 +108,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/account_recyclerview"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
 
     </LinearLayout>
 </layout>
