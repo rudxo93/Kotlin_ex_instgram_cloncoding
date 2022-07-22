@@ -35,6 +35,7 @@ class UserFragment: Fragment() {
     lateinit var storeage: FirebaseStorage
     lateinit var dUid: String
     lateinit var currentUid: String
+    lateinit var followModel: FollowModel
 
     var myPhotoResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
         result ->
@@ -120,8 +121,48 @@ class UserFragment: Fragment() {
 
         // 프로필 이미지 가져오기
         getProfileImage()
+        // 팔로워, 팔로잉 부분 기능 구현
+        getFollowingFollowingCount()
 
         return binding.root
+    }
+
+    // 팔로워, 팔로잉 카운트 -> 팔로잉과 팔로우 정보를 Firebase에서 받아와 view에 보여준다.
+    fun getFollowingFollowingCount(){
+        // addSnapshotListener -> users 컬렉션에서 어떤 변경을 감지한다.
+        // 실시간으로 데이터를 가져온다.
+        // 데이터를 실시간으로 가져오기 때문에 데이터 삭제, 수정, 추가 한 후 데이터를 다시 받아오지 않아도 된다.
+        firestore.collection("users").document(dUid).addSnapshotListener { value, error ->
+            // 만약 값이 null이라면 다시 리스너로 돌아간다. -> 실시간으로 데이터를 감지
+            if(value == null) return@addSnapshotListener
+            followModel = value.toObject(FollowModel::class.java)!!
+            // 만약 FollowModel에 followerCount가 null이 아니라면 -> 현재 나를 따르는 사람(팔로워)이 있다.
+            if(followModel?.followerCount != null){
+                // 나를 따르는 사람(팔로워) -> 유저 프래그먼트의 팔로워 수를 나타내는 TextView에 count수를 띄워준다.
+                binding.accountFollowerTextview.text = followModel.followerCount.toString()
+                if(currentUid == dUid){
+                    //나의 페이지 일경우 다시 리스너로 돌아간다. -> 실시간으로 데이터를 감지
+                    return@addSnapshotListener
+                }
+                //상대페이지
+                // 현재 currentUid에는 팔로우 하고자 하는 UID가 담겨있다
+                if(followModel.followers.containsKey(currentUid)){
+                    // 팔로우 하고자 하는 유저의 페이지에서 signOut버튼을 follow_cancel로 변경
+                    binding.accountBtnFollowSignout.text = activity?.getText(R.string.follow_cancel)
+                }else{
+                    // 그렇지 않다면 -> follower가 아니다 -> signOut버튼을 follow로 변경
+                    binding.accountBtnFollowSignout.text = activity?.getText(R.string.follow)
+                }
+            }
+
+            // 만약 followingCount(내가 다르는 사람의 수)가 null이 아니라면
+            // -> 유저 프래그먼트의 팔로잉 수를 나타내는 TextView에 count수를 띄워준다.
+            if(followModel?.followingCount != null){
+                //스토커가 연예인들 카운트
+                binding.accountFollowingTextview.text = followModel.followingCount.toString()
+            }
+
+        }
     }
 
     // 팔로우와 팔로잉 결과
