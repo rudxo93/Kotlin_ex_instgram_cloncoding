@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.databinding.DataBindingUtil
@@ -20,8 +19,10 @@ import com.duran.howlstagram.LoginActivity
 import com.duran.howlstagram.MainActivity
 import com.duran.howlstagram.R
 import com.duran.howlstagram.databinding.FragmentUserBinding
+import com.duran.howlstagram.databinding.ItemImageviewBinding
 import com.duran.howlstagram.model.ContentModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 
@@ -34,28 +35,32 @@ class UserFragment: Fragment() {
     lateinit var dUid: String
     lateinit var currentUid: String
 
-    val myPhotoResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+    var myPhotoResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
         result ->
         // 사진을 받아오면서 바로 업로드한다.
-        val imageUrl = result.data!!.data
-        // 사진을 저장할 경로
-        val storageRef = storeage.reference.child("userProfileImages").child(currentUid)
-        storageRef.putFile(imageUrl!!).continueWithTask {
+        var imageUrl = result.data?.data!!
+        // Firebase Storage에 userProfileImages 폴더를 만들어서 사진을 업로드한다.
+        var storageRef = storeage.reference.child("userProfileImages").child(currentUid)
+
+        // 여기서부터 안넘어온다.....
+        storageRef.putFile(imageUrl).continueWithTask {
             // 스토리지에 사진만 업로드
             return@continueWithTask storageRef.downloadUrl
         }.addOnCompleteListener {
             imageUri ->
             // 데이터베이스 누가 뭘 올렸는지 정리한 데이터 저장
-            Log.e("tab", "여기서 에러인가?")
-            val map = HashMap<String, Any>()
-            map["image"] = imageUri.result.toString()
+            var map = HashMap<String, Any>()
+            map["image"] = imageUri.toString()
 
-            firestore.collection("profileImages").document(currentUid).set(map)
+            firestore.collection("profileImages").document(dUid).set(map)
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_user, container, false)
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
@@ -67,7 +72,7 @@ class UserFragment: Fragment() {
         binding.accountRecyclerview.adapter = UserFragmentRecyclerViewAdapter()
         binding.accountRecyclerview.layoutManager = GridLayoutManager(activity, 3)
 
-        val mainActivity = activity as? MainActivity
+        var mainActivity = activity as? MainActivity
 
         if (currentUid == dUid) {
             // my page
@@ -85,7 +90,7 @@ class UserFragment: Fragment() {
             }
             // 본인 계정 프로필 사진 view 클릭 시
             binding.accountIvProfile.setOnClickListener {
-                val picker = Intent(Intent.ACTION_PICK)
+                var picker = Intent(Intent.ACTION_PICK)
                 picker.type = "image/*"
                 myPhotoResultLauncher.launch(picker)
             }
@@ -116,44 +121,43 @@ class UserFragment: Fragment() {
         // Firebase의 profileImages컬렉션에 있는 프로필이미지를 가져온다.
         firestore.collection("profileImages").document(dUid).addSnapshotListener { value, error ->
             if(value?.data != null) {
-                val url = value.data!!["image"]
+                var url = value.data!!["image"]
                 Glide.with(requireActivity()).load(url).apply(RequestOptions().circleCrop()).into(binding.accountIvProfile)
             }
         }
     }
 
-    inner class CustomViewHolder(val imageview: ImageView): RecyclerView.ViewHolder(imageview)
+    inner class CellImageViewHolder(val binding: ItemImageviewBinding): RecyclerView.ViewHolder(binding.root)
     @SuppressLint("NotifyDataSetChanged")
-    inner class UserFragmentRecyclerViewAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>(){
-        val contentModels: ArrayList<ContentModel> = arrayListOf()
+    inner class UserFragmentRecyclerViewAdapter: RecyclerView.Adapter<CellImageViewHolder>(){
+        var contentModels: ArrayList<ContentModel> = arrayListOf()
 
         init {
             // Firebase의 image 컬렉션에서 uid필드가 dUid인 문서들만 가져온다.
             // whereEqualTo는 == 연산자에 해당된다.
             // addSnapshotListener -> Firebase에서 실시간으로 바뀐 데이터를 업테이트 하는 기능
             firestore.collection("images").whereEqualTo("uid", dUid).addSnapshotListener { value, error ->
-                if(value == null) return@addSnapshotListener
-
-                for(item in value.documents) {
-                    contentModels.add(item.toObject(ContentModel::class.java)!!)
+                for(item in value!!.documentChanges){
+                    if(item.type == DocumentChange.Type.ADDED){
+                        contentModels.add(item.document.toObject(ContentModel::class.java)!!)
+                    }
                 }
-
                 binding.accountPostTextview.text = contentModels.size.toString()
 
                 notifyDataSetChanged()
             }
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            val width = resources.displayMetrics.widthPixels / 3
-            val view = ImageView(parent.context)
-            view.layoutParams = LinearLayoutCompat.LayoutParams(width, width)
-            return CustomViewHolder(view)
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CellImageViewHolder {
+            var width = resources.displayMetrics.widthPixels / 3
+            var view = ItemImageviewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            view.cellImageview.layoutParams = LinearLayoutCompat.LayoutParams(width, width)
+            return CellImageViewHolder(view)
         }
 
-        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            val imageview = (holder as CustomViewHolder).imageview
-            Glide.with(holder.itemView.context).load(contentModels[position].imageUrl).apply(RequestOptions().centerCrop()).into(imageview)
+        override fun onBindViewHolder(holder: CellImageViewHolder, position: Int) {
+            var contentModel = contentModels[position]
+            Glide.with(holder.itemView.context).load(contentModel.imageUrl).into(holder.binding.cellImageview)
         }
 
         override fun getItemCount(): Int {
