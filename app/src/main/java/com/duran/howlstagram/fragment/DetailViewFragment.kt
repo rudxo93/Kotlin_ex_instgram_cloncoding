@@ -1,6 +1,8 @@
 package com.duran.howlstagram.fragment
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.duran.howlstagram.CommentActivity
 import com.duran.howlstagram.R
 import com.duran.howlstagram.databinding.FragmentDetailViewBinding
 import com.duran.howlstagram.databinding.ItemDetailBinding
@@ -21,6 +24,7 @@ class DetailViewFragment : Fragment() {
 
     lateinit var binding: FragmentDetailViewBinding
     lateinit var firestore: FirebaseFirestore
+    lateinit var auth: FirebaseAuth
     lateinit var uid: String
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -28,6 +32,7 @@ class DetailViewFragment : Fragment() {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_view, container, false)
         firestore = FirebaseFirestore.getInstance()
         uid = FirebaseAuth.getInstance().uid!!
+        auth = FirebaseAuth.getInstance()
 
         // recyclerview에
         binding.detailviewRecyclerveiw.adapter = DetailviewRecyclerviewAdapter()
@@ -101,6 +106,14 @@ class DetailViewFragment : Fragment() {
                 // 데이터를 가지고 UserFragment로 이동
                 fragment.arguments = bundle
                 activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.main_content, fragment)?.commit()
+            }
+
+            // 코멘트로 이동 로직
+           viewHolder.commentImageview.setOnClickListener {
+               var intent = Intent(activity, CommentActivity::class.java)
+               // images 컬렉션 안에 아이템 이름을 넘겨준다. -> dUid : 컬렉션에 아이템 이름
+               intent.putExtra("dUid", contentUidsList[position]) // jAZgDwXRnZwH3DjZo2hy
+               startActivity(intent)
             }
         }
 
