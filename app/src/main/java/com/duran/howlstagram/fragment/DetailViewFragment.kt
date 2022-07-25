@@ -112,8 +112,10 @@ class DetailViewFragment : Fragment() {
             // 코멘트로 이동 로직
            viewHolder.commentImageview.setOnClickListener {
                var intent = Intent(activity, CommentActivity::class.java)
-               // images 컬렉션 안에 아이템 이름을 넘겨준다. -> dUid : 컬렉션에 아이템 이름
-               intent.putExtra("dUid", contentUidsList[position]) // jAZgDwXRnZwH3DjZo2hy
+               // images 컬렉션 안에 아이템의 uid를 넘겨준다. -> dUid : 컬렉션에 아이템 이름
+               // jAZgDwXRnZwH3DjZo2hy(x)  -> 코멘트로 이동할 때 uid가 필요하다.
+               intent.putExtra("dUid", contentModels[position].uid)
+               Log.e("메세지", "${contentModels[position].uid.toString()}")
                startActivity(intent)
            }
 
