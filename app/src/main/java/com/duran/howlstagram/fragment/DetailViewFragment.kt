@@ -15,6 +15,7 @@ import com.duran.howlstagram.CommentActivity
 import com.duran.howlstagram.R
 import com.duran.howlstagram.databinding.FragmentDetailViewBinding
 import com.duran.howlstagram.databinding.ItemDetailBinding
+import com.duran.howlstagram.model.AlarmModel
 import com.duran.howlstagram.model.ContentModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -114,7 +115,22 @@ class DetailViewFragment : Fragment() {
                // images 컬렉션 안에 아이템 이름을 넘겨준다. -> dUid : 컬렉션에 아이템 이름
                intent.putExtra("dUid", contentUidsList[position]) // jAZgDwXRnZwH3DjZo2hy
                startActivity(intent)
-            }
+           }
+
+        }
+
+        // 좋아요를 하게되면 알람모델에 정보들을 set
+        fun favorteAlarm(dUid : String){
+            var alarmModel = AlarmModel()
+            alarmModel.destinationUid = dUid
+            alarmModel.userId = auth.currentUser?.email
+            alarmModel.uid = auth.uid
+            alarmModel.kind = 0
+            alarmModel.timestamp = System.currentTimeMillis()
+
+            // alarms컬렉션에 alarm모델을 set해분다.
+            firestore.collection("alarms").document().set(alarmModel)
+
         }
 
         override fun getItemCount(): Int {
@@ -140,6 +156,8 @@ class DetailViewFragment : Fragment() {
                     // 좋아요를 누르지 않은 상태
                     contentModel.favoriteCount = contentModel.favoriteCount + 1
                     contentModel.favorites[uid] = true
+                    // 좋아요 카운트가 올라가는 else문에 넣어준다. -> 좋아요를 누르면 1이 추가가 되고 알람 발생
+                    favorteAlarm(contentModel.uid!!)
                 }
                 transition.set(tsDoc, contentModel)
             }

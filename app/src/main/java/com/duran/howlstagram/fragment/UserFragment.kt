@@ -20,6 +20,7 @@ import com.duran.howlstagram.MainActivity
 import com.duran.howlstagram.R
 import com.duran.howlstagram.databinding.FragmentUserBinding
 import com.duran.howlstagram.databinding.ItemImageviewBinding
+import com.duran.howlstagram.model.AlarmModel
 import com.duran.howlstagram.model.ContentModel
 import com.duran.howlstagram.model.FollowModel
 import com.google.firebase.auth.FirebaseAuth
@@ -165,6 +166,19 @@ class UserFragment: Fragment() {
         }
     }
 
+    // 팔로우 버튼에도 알림이벤트
+    fun eventFollowAlarm(dUid : String){
+        var alarmModel = AlarmModel()
+        alarmModel.destinationUid = dUid
+        alarmModel.userId = auth.currentUser?.email
+        alarmModel.uid = auth.uid
+        alarmModel.kind = 2
+        alarmModel.timestamp = System.currentTimeMillis()
+
+        // alarms 컬렉션에 alarm모델을 set
+        firestore.collection("alarms").document().set(alarmModel)
+    }
+
     // 팔로우와 팔로잉 결과
     fun reqeustFollwerAndFollowing() {
         // 팔로잉 정보 -> 내가 따르고 있는 사람
@@ -185,6 +199,8 @@ class UserFragment: Fragment() {
                 followingModel = FollowModel()
                 followingModel.followingCount = 1
                 followingModel.followings[dUid] = arguments?.getString("userId")!!
+                // 팔로우 하게되면 알림 이벤트
+                eventFollowAlarm(dUid)
                 // transition.set(데이터베이스 경로, followingModel)
                 // users의 현재 사용자 이름으로된 데이터 베이스 경로에 followingCount와 followings값을 set해준다.
                 transition.set(tsDocFollowing,followingModel)
@@ -203,6 +219,8 @@ class UserFragment: Fragment() {
                 // followings Map에 userId값을 dUid키값에 넣는다.
                 // 내가 팔로우 하고자 하는 계정의 이메일
                 followingModel.followings[dUid] = arguments?.getString("userId")!!
+                // 팔로우가 1 증가하게되면 알림 이벤트
+                eventFollowAlarm(dUid)
 
             }
             // transition.set(데이터베이스 경로, followingModel)

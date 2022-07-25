@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.duran.howlstagram.databinding.ActivityCommentBinding
 import com.duran.howlstagram.databinding.ItemCommentBinding
+import com.duran.howlstagram.model.AlarmModel
 import com.duran.howlstagram.model.ContentModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -43,10 +44,26 @@ class CommentActivity : AppCompatActivity() {
 
             // images컬렉션에 현재 dUid의 문서에 접근 -> comments컬렉션 생성 후 comment를 set해준다.
             firestore.collection("images").document(dUid).collection("comments").document().set(comment)
-
+            // 댓글 send시 알람이벤트
+            commentAlarm(dUid, binding.commentEdittext.text.toString())
             binding.commentEdittext.setText("")
 
         }
+
+    }
+
+    // 댓글 send시 알람이벤트
+    fun commentAlarm(dUid: String, message: String) {
+        var alarmModel = AlarmModel()
+        alarmModel.destinationUid = dUid
+        alarmModel.uid = auth.uid
+        alarmModel.userId = auth.currentUser?.email
+        alarmModel.kind = 1
+        alarmModel.message = message
+        alarmModel.timestamp = System.currentTimeMillis()
+
+        // alarms컬렉션 안에 alarm모델을set해준다.
+        firestore.collection("alarms").document().set(alarmModel)
     }
 
     inner class ItemCommentViewHolder(var binding: ItemCommentBinding): RecyclerView.ViewHolder(binding.root)
